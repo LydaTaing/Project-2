@@ -63,7 +63,7 @@ def ForwardSelection( num_feature):
 
 # the same intuition to Forward selection, but go backward. 
 # It starts with the full, set of features and removes one feature at a time.
-def BacwardElimination(num_feature):
+def BackwardElimination(num_feature):
     print("earch finished! The best subset of features is")
 
 def main():
@@ -83,7 +83,7 @@ def main():
                 ForwardSelection(num_feature)
                 break
             elif choice ==2:
-                BacwardElimination(num_feature)
+                BackwardElimination(num_feature)
                 break
             else:
                 print("invalid input. Enter 1 or 2.")
