@@ -18,8 +18,6 @@ def ForwardSelection( num_feature):
 
     # best score overall level
     overallBestScore = score
-    # best score from the previous level 
-    prevScore = score 
 
     # each level, check the best score and feature
     for level in range(num_feature):
@@ -34,7 +32,7 @@ def ForwardSelection( num_feature):
 
         # in each combiation of feature, check the best score
         for feature in availableFeature:
-            featureCounter += 1
+            #featureCounter += 1
             tempSet = currentFeature.copy()
             tempSet.add(feature)
             tempScore = evalFunction(tempSet)
@@ -49,8 +47,8 @@ def ForwardSelection( num_feature):
         currentFeature = currentBestFeature
 
         # Print level summary only if there was a choice
-        if featureCounter > 0:
-            print(f"\nFeature set {currentFeature} was best, accuracy is {currentBestScore}%\n")
+        #if featureCounter > 0:
+        print(f"\nFeature set {currentFeature} was best, accuracy is {currentBestScore}%\n")
             
         # update overall best score and overall best feature
         if currentBestScore > overallBestScore:
@@ -64,7 +62,42 @@ def ForwardSelection( num_feature):
 # the same intuition to Forward selection, but go backward. 
 # It starts with the full, set of features and removes one feature at a time.
 def BackwardElimination(num_feature):
-    print("earch finished! The best subset of features is")
+    # print the first random evaluation for initial feature.
+    score = evalFunction(set()) #empty set 
+    print(f"Using no features and \"random\" evaluation, I get an accuracy of {score}%. Beginning search.\n")
+
+    # initial set of feature 
+    currentFeature = set(range(1, num_feature + 1))
+    overallBestFeature = currentFeature.copy()
+
+    # best score overall level
+    overallBestScore = score
+
+    # each level, check the best score and feature
+    for level in range(num_feature):
+        currentBestScore = -1.0
+        currentBestFeature = None
+
+        for feature in currentFeature:
+            tempSet = currentFeature - {feature}
+            tempScore = evalFunction(tempSet)
+            print(f"    Using feature(s) {tempSet} accuracy is {tempScore}%")
+
+            if tempScore > currentBestScore:
+                currentBestScore = tempScore
+                currentBestSubset = tempSet
+
+        currentFeature = currentBestSubset
+        print(f"\nFeature set {currentFeature} was best, accuracy is {currentBestScore}%\n")
+
+        if currentBestScore > overallBestScore:
+            overallBestScore = currentBestScore
+            overallBestFeature = currentBestSubset.copy()
+
+    print(f"Search finished! The best subset of features is {overallBestFeature}, which has an accuracy of {overallBestScore}%")
+
+
+
 
 def main():
     # input instruction prompt
@@ -89,5 +122,6 @@ def main():
                 print("invalid input. Enter 1 or 2.")
         except ValueError:
             print("invalid input. Enter 1 or 2.")
+            
 if __name__ == "__main__":
     main()
