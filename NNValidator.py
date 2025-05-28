@@ -131,4 +131,24 @@ def EvaluateFeatures(filePath, featureSubset):
     accuracy = CrossValidation(normalizedFeatures, labels, kNeighbors=1)
     
     return accuracy
+
+#define the main that asks for which data they want and return the correct output
+def main():
+    #ask user for choice of feature and dataset
+    filePath = input("Enter the path to the dataset file (e.g., 'small-test-dataset.txt'): ")
+    featuresInput = input("Enter the feature indices separated by commas (e.g., 3,5,7): ")
+    features = [int(i.strip()) for i in featuresInput.split(',')]
+   
+    #print the statement of running tests with certain features
+    print(f"--- Running evaluation for {filePath} with features {features} ---")
+    
+    #call the evaluation function with input variables
+    accuracy = EvaluateFeatures(filePath, features)
+    
+    if accuracy is not None:
+        print(f"\nAccuracy: {accuracy:.5f}\n")
+
+# This is how you would run it
+if __name__ == "__main__":
+    main()
     
