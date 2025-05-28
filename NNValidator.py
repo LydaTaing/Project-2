@@ -1,5 +1,6 @@
 import numpy as np
 from collections import Counter
+from sklearn.preprocessing import MinMaxScaler
 
 #class that chooses the class for the point based on eucidean distance
 class NearestNeighborClassifier:
@@ -48,7 +49,7 @@ class NearestNeighborClassifier:
 #args: labels (np.ndarray): The full dataset labels
 #args: k_neighbors (int): The number of neighbors (k) for the KNN classifier
 #return: accuracy of classifier
-def crossValidation(features, labels, kNeighbors):
+def CrossValidation(features, labels, kNeighbors):
     #count the correct ad total to make accuracy 
     correctPredictions = 0
     numInstances = features.shape[0]
@@ -77,3 +78,57 @@ def crossValidation(features, labels, kNeighbors):
     #calculate and return the accuracy
     accuracy = correctPredictions / numInstances
     return accuracy
+
+#load all the data through the given file, the first column is the class, and the rest are features.
+#arg: file_path (str): The path to the dataset file.
+#return: tuple: A tuple containing (features, labels) as NumPy arrays.
+def LoadDataset(file_path):
+    try:
+        data = np.loadtxt(file_path)
+        labels = data[:, 0]
+        features = data[:, 1:]
+        return features, labels
+    #catch if the file path is incorrect
+    except FileNotFoundError:
+        print(f"Error: The file at {file_path} was not found.")
+        return None, None
+    #if the file is not able to read
+    except Exception as e:
+        print(f"An error occurred while reading the file: {e}")
+        return None, None
+    
+#combining all the functions together; Load dataset, select feature subset, normalize, and returns the classification accuracy using validation.
+#arg: file_path (str): The path to the dataset file
+#arg: feature_subset (list of int): A list of 1-based feature numbers to use
+#return: float: The calculated accuracy, or None if an error occurs
+def EvaluateFeatures(filePath, featureSubset):
+    #tell the user we are loading dataset
+    print(f"Loading dataset: {filePath}...")
+    features, labels = LoadDataset(filePath)
+    
+    #edge case: if the data did not load correctly
+    if features is None:
+        return None
+        
+    #print out all the features
+    print(f"Evaluating with features: {featureSubset}")
+    
+    #convert the number to index by subtracting one ex.{2, 3, 7} --> {1, 2, 6}
+    featureIndices = [
+        i - 1
+        for i in featureSubset
+    ]
+
+    #select only the chosen features
+    selectedFeatures = features[:, featureIndices]
+    
+    #normalize the selected features -- use sklearn
+    scaler = MinMaxScaler()
+    normalizedFeatures = scaler.fit_transform(selectedFeatures)
+    
+    # Calculate accuracy using the previously defined validation function
+    # Using k=1 for the nearest neighbor as per the base requirement
+    accuracy = CrossValidation(normalizedFeatures, labels, kNeighbors=1)
+    
+    return accuracy
+    
