@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from collections import Counter
 from sklearn.preprocessing import MinMaxScaler
 
@@ -101,6 +102,7 @@ def LoadDataset(file_path):
 #arg: file_path (str): The path to the dataset file
 #arg: feature_subset (list of int): A list of 1-based feature numbers to use
 #return: float: The calculated accuracy, or None if an error occurs
+from sklearn.preprocessing import MinMaxScaler
 def EvaluateFeatures(filePath, featureSubset):
     #tell the user we are loading dataset
     print(f"Loading dataset: {filePath}...")
@@ -137,6 +139,7 @@ def main():
     #ask user for choice of feature and dataset
     filePath = input("Enter the path to the dataset file (e.g., 'small-test-dataset.txt'): ")
     featuresInput = input("Enter the feature indices separated by commas (e.g., 3,5,7): ")
+    #format into a comma seperated list
     features = [int(i.strip()) for i in featuresInput.split(',')]
    
     #print the statement of running tests with certain features
