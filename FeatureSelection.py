@@ -5,9 +5,9 @@ def evalFunction(featureSet):
     return round(random.uniform(10.0, 95.0), 1) 
 
 # Greedy forward that starts with empty set of selection then iteratively increase the number of feature. 
-# Using evalutaion function to find a score of each node : use a stub evaluation function that returns a random value
+# Using evalutaion function to find a score of each node :use a stub evaluation function that returns a random value
 # Print out the highest score at each step. 
-def ForwardSelection( num_feature):
+def ForwardSelection(num_feature):
     # print the first random evaluation for initial feature.
     score = evalFunction(set()) #empty set 
     print(f"Using no features and \"random\" evaluation, I get an accuracy of {score}%. Beginning search.\n")
@@ -32,7 +32,7 @@ def ForwardSelection( num_feature):
 
         # in each combiation of feature, check the best score
         for feature in availableFeature:
-            #featureCounter += 1
+            featureCounter += 1
             tempSet = currentFeature.copy()
             tempSet.add(feature)
             tempScore = evalFunction(tempSet)
