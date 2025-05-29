@@ -1,17 +1,16 @@
 import numpy as np
 import pandas as pd
 from collections import Counter
-from sklearn.preprocessing import MinMaxScaler
 
-#class that chooses the class for the point based on eucidean distance
+#class that chooses the class for the data point based on eucidean distance
 class NearestNeighborClassifier:
-    #Initializes the classifier with a given k, default is k=1 for simplicity.
+    #Initializes the classifier with a given k, default is k=1
     def __init__(self, k=1):
         self.k = k
 
     #stores the training data: 
-    #training_instances (np.ndarray): A 2D array of training data points.
-    #training_labels (np.ndarray): A 1D array of labels for the training data.
+    #training_instances (np.ndarray): A 2D array of training data points
+    #training_labels (np.ndarray): A 1D array of labels for the training data
     def train(self, trainingInstances, trainingLabels):
         self.trainingInstances = trainingInstances
         self.trainingLabels = trainingLabels
@@ -21,34 +20,34 @@ class NearestNeighborClassifier:
         return np.sqrt(np.sum((p1 - p2)**2))
 
     #predct the class for single test
-    #arg: test_instance (np.ndarray): A 1D array representing a single data point.
+    #arg: test_instance (np.ndarray): A 1D array representing a single data point
     #return: class label
     def test(self, testInstance):
 
-        #distance for all the points
+        #distance for all points
         distances = [
             self._euclidean_distance(testInstance, trainInstance)
             for trainInstance in self.trainingInstances
         ]
         
-        #indices of the k nearest neighbors
+        #indices of k nearest neighbors
         kNearestIndices = np.argsort(distances)[:self.k]
         
-        #labels of the k nearest neighbors
+        #labels of k nearest neighbors
         kNearestLabels = [
             self.trainingLabels[i]
             for i in kNearestIndices
         ]
 
-        #count and return most common class label (majority vote)
+        #count and return most common label
         most_common = Counter(kNearestLabels).most_common(1)
         return most_common[0][0]
     
 
-#goes through each point in the data set and then caluates the overall accuracy
+#goes through each point in the data set and caluates overall accuracy
 #arg: features (np.ndarray): The full dataset features
 #args: labels (np.ndarray): The full dataset labels
-#args: k_neighbors (int): The number of neighbors (k) for the KNN classifier
+#args: k_neighbors (int): The number of neighbors for the KNN classifier
 #return: accuracy of classifier
 def CrossValidation(features, labels, kNeighbors):
     #count the correct ad total to make accuracy 
@@ -61,7 +60,7 @@ def CrossValidation(features, labels, kNeighbors):
         testInstance = features[i]
         testLabel = labels[i]
         
-        #all other instances are the training data
+        #all other data points are the training data
         trainingInstances = np.delete(features, i, axis=0)
         trainingLabels = np.delete(labels, i, axis=0)
         
@@ -69,7 +68,7 @@ def CrossValidation(features, labels, kNeighbors):
         classifier = NearestNeighborClassifier(k=kNeighbors)
         classifier.train(trainingInstances, trainingLabels)
         
-        #prediction
+        #prediction of the class
         prediction = classifier.test(testInstance)
         
         #is the prediction correct?
@@ -80,16 +79,17 @@ def CrossValidation(features, labels, kNeighbors):
     accuracy = correctPredictions / numInstances
     return accuracy
 
-#load all the data through the given file, the first column is the class, and the rest are features.
+#load all the data in file--> the first column is the class, and the rest are features.
 #arg: file_path (str): The path to the dataset file.
 #return: tuple: A tuple containing (features, labels) as NumPy arrays.
 def LoadDataset(file_path):
+    #look at the dataset and find the class and features
     try:
         data = np.loadtxt(file_path)
         labels = data[:, 0]
         features = data[:, 1:]
         return features, labels
-    #catch if the file path is incorrect
+    #if the file path is incorrect
     except FileNotFoundError:
         print(f"Error: The file at {file_path} was not found.")
         return None, None
@@ -98,11 +98,46 @@ def LoadDataset(file_path):
         print(f"An error occurred while reading the file: {e}")
         return None, None
     
+#normalize the data using minMax
+#arg: data (2D array): A 2D NumPy array where rows are instances and columns are features.
+#return: the normalized 2D array
+def normalizeData(data):
+    #find row and column size
+    rows = data.shape[0]
+    cols = data.shape[1]
+
+    #create a copy of data to normalize
+    normalized = data.copy()
+    #iterate through each column of data 
+    for j in range(data.shape[1]): # data_array.shape[1] is the number of columns
+        column = data[:, j]
+        minimum = np.min(column)
+        maximum = np.max(column)
+
+        #change the values/check if the min and max are same
+        if maximum == minimum:
+            # If all values in the column are the same, set them to 0
+            for i in range(rows):
+                normalized[i, j] = 0
+        else:
+            #iterates through each element, the row, in the current column
+            for i in range(rows):
+                #original value
+                value = data[i, j]
+                
+                #normalized value
+                newValue = (value - minimum) / (maximum - minimum)
+                
+                #re-assign to correct position
+                normalized[i, j] = newValue
+    
+    #return normalized 2D array
+    return normalized
+
 #combining all the functions together; Load dataset, select feature subset, normalize, and returns the classification accuracy using validation.
 #arg: file_path (str): The path to the dataset file
 #arg: feature_subset (list of int): A list of 1-based feature numbers to use
 #return: float: The calculated accuracy, or None if an error occurs
-from sklearn.preprocessing import MinMaxScaler
 def EvaluateFeatures(filePath, featureSubset):
     #tell the user we are loading dataset
     print(f"Loading dataset: {filePath}...")
@@ -112,7 +147,7 @@ def EvaluateFeatures(filePath, featureSubset):
     if features is None:
         return None
         
-    #print out all the features
+    #print out all the features that we are going to use
     print(f"Evaluating with features: {featureSubset}")
     
     #convert the number to index by subtracting one ex.{2, 3, 7} --> {1, 2, 6}
@@ -121,12 +156,11 @@ def EvaluateFeatures(filePath, featureSubset):
         for i in featureSubset
     ]
 
-    #select only the chosen features
+    #select only the chosen features (chooses the columns based on the index given)
     selectedFeatures = features[:, featureIndices]
     
-    #normalize the selected features -- use sklearn
-    scaler = MinMaxScaler()
-    normalizedFeatures = scaler.fit_transform(selectedFeatures)
+    #normalize the selected features
+    normalizedFeatures = normalizeData(selectedFeatures)
     
     # Calculate accuracy using the previously defined validation function
     # Using k=1 for the nearest neighbor as per the base requirement
@@ -137,9 +171,9 @@ def EvaluateFeatures(filePath, featureSubset):
 #define the main that asks for which data they want and return the correct output
 def main():
     #ask user for choice of feature and dataset
-    filePath = input("Enter the path to the dataset file (e.g., 'small-test-dataset.txt'): ")
-    featuresInput = input("Enter the feature indices separated by commas (e.g., 3,5,7): ")
-    #format into a comma seperated list
+    filePath = input("Enter the path to the dataset file (ex., 'small-test-dataset.txt'): ")
+    featuresInput = input("Enter the feature indices separated by commas (ex., 3,5,7): ")
+    #format into a comma seperated list - split seperates the data based on certain character
     features = [int(i.strip()) for i in featuresInput.split(',')]
    
     #print the statement of running tests with certain features
@@ -148,6 +182,7 @@ def main():
     #call the evaluation function with input variables
     accuracy = EvaluateFeatures(filePath, features)
     
+    #if there are no errors, give the output
     if accuracy is not None:
         print(f"\nAccuracy: {accuracy:.5f}\n")
 
