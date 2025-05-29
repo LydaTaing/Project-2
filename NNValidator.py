@@ -15,7 +15,7 @@ class NearestNeighborClassifier:
         self.trainingInstances = trainingInstances
         self.trainingLabels = trainingLabels
 
-    #calulate euclidean distance
+    #calulate euclidean distance of the two points
     def _euclidean_distance(self, p1, p2):
         return np.sqrt(np.sum((p1 - p2)**2))
 
@@ -30,9 +30,16 @@ class NearestNeighborClassifier:
             for trainInstance in self.trainingInstances
         ]
         
-        #indices of k nearest neighbors
-        kNearestIndices = np.argsort(distances)[:self.k]
-        
+        #create a tuple with the index of the distance and the value of the distance
+        indexedDistances = [
+            (i, d) 
+            for i, d in enumerate(distances)
+        ]
+        #sort the distances by the second value in the tuple, the distance acending order
+        indexedDistances.sort(key=lambda x: x[1])
+        #get only the firstvalue in the tuple 
+        kNearestIndices = [i for i, d in indexedDistances[:1]]
+
         #labels of k nearest neighbors
         kNearestLabels = [
             self.trainingLabels[i]
@@ -150,7 +157,7 @@ def EvaluateFeatures(filePath, featureSubset):
     #print out all the features that we are going to use
     print(f"Evaluating with features: {featureSubset}")
     
-    #convert the number to index by subtracting one ex.{2, 3, 7} --> {1, 2, 6}
+    #convert the number to index by subtracting one: real # -->{2, 3, 7} / index value --> {1, 2, 6}
     featureIndices = [
         i - 1
         for i in featureSubset
@@ -164,7 +171,7 @@ def EvaluateFeatures(filePath, featureSubset):
     
     # Calculate accuracy using the previously defined validation function
     # Using k=1 for the nearest neighbor as per the base requirement
-    accuracy = CrossValidation(normalizedFeatures, labels, kNeighbors=1)
+    accuracy = CrossValidation(normalizedFeatures, labels, 1)
     
     return accuracy
 
