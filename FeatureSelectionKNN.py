@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 from collections import Counter
 
 #class that chooses the class for the data point based on eucidean distance
@@ -147,7 +146,7 @@ def normalizeData(data):
 #return: float: The calculated accuracy, or None if an error occurs
 def EvaluateFeatures(filePath, featureSubset):
     #tell the user we are loading dataset
-    print(f"Loading dataset: {filePath}...")
+    # print(f"Loading dataset: {filePath}...")
     features, labels = LoadDataset(filePath)
     
     #edge case: if the data did not load correctly
@@ -155,7 +154,7 @@ def EvaluateFeatures(filePath, featureSubset):
         return None
         
     #print out all the features that we are going to use
-    print(f"Evaluating with features: {featureSubset}")
+    #print(f"Evaluating with features: {featureSubset}")
     
     #convert the number to index by subtracting one: real # -->{2, 3, 7} / index value --> {1, 2, 6}
     featureIndices = [
@@ -173,27 +172,139 @@ def EvaluateFeatures(filePath, featureSubset):
     # Using k=1 for the nearest neighbor as per the base requirement
     accuracy = CrossValidation(normalizedFeatures, labels, 1)
     
-    return accuracy
+    #return in percentage 
+    return round(accuracy *100, 1)
 
-#define the main that asks for which data they want and return the correct output
+def ForwardSelection(num_feature, filePath):
+
+    # initial set of feature 
+    overallBestFeature = set()
+    currentFeature = set()
+
+    # print the first random evaluation for initial feature.
+    score = EvaluateFeatures(filePath, list(currentFeature))
+    print(f"Running nearest neighbor with no features (default rate), using \"leaving-one-out\" evaluation, I get an accuracy of {score}%")
+    print("Beginning search.")
+
+    # best score overall level
+    overallBestScore = score
+
+    # each level, check the best score and feature
+    for level in range(num_feature):
+        currentBestScore = -1.0
+        currentBestFeature = None
+
+        # set the feature that not in current, therefore it need to add to caluculate. 
+        availableFeature = set(range(1, num_feature +1)) - currentFeature
+
+        # keep track of how many different features are evaluated as potential candidates to be added at the current level
+        # featureCounter = 0
+
+        # in each combiation of feature, check the best score
+        for feature in availableFeature:
+            #featureCounter += 1
+            tempSet = currentFeature.copy()
+            tempSet.add(feature)
+            
+            # modify : 
+            tempScore = EvaluateFeatures(filePath, list(tempSet))
+            print(f"    Using feature(s) {tempSet} accuracy is {tempScore}%")
+
+            # check if the current score is greater then the overall score
+            if tempScore > currentBestScore:
+                currentBestScore = tempScore
+                currentBestFeature = tempSet.copy()
+            
+        # Update current_features to the best one found at this level
+        currentFeature = currentBestFeature
+
+        # Print level summary only if there was a choice
+        #if featureCounter > 0:
+        print(f"\nFeature set {currentFeature} was best, accuracy is {currentBestScore}%\n")
+            
+        # update overall best score and overall best feature
+        if currentBestScore > overallBestScore:
+            overallBestScore = currentBestScore
+            overallBestFeature = currentBestFeature.copy()
+        
+    # print the best score 
+    print(f"\nSearch finished! The best subset of features is {overallBestFeature}, which has an accuracy of {overallBestScore}%")
+
+
+# the same intuition to Forward selection, but go backward. 
+# It starts with the full set of features and removes one feature at a time.
+def BackwardElimination(num_feature, filePath):
+
+    # initial set of feature 
+    currentFeature = set(range(1, num_feature + 1))
+    overallBestFeature = currentFeature.copy()
+
+    # print the first random evaluation for initial feature.
+    score = EvaluateFeatures(filePath, list(currentFeature))
+    print(f"Running nearest neighbor with all features using \"leaving-one-out\" evaluation, I get an accuracy of {score}%.")
+    print("Beginning search.")
+    # best score overall level
+    overallBestScore = score
+
+    # each level, check the best score and feature
+    for level in range(num_feature):
+        currentBestScore = -1.0
+        currentBestFeature = None
+
+        for feature in currentFeature:
+            tempSet = currentFeature - {feature}
+
+            # modify : 
+            tempScore = EvaluateFeatures(filePath, list(tempSet))
+            print(f"    Using feature(s) {tempSet} accuracy is {tempScore}%")
+
+            if tempScore > currentBestScore:
+                currentBestScore = tempScore
+                currentBestSubset = tempSet
+
+        currentFeature = currentBestSubset
+        print(f"\nFeature set {currentFeature} was best, accuracy is {currentBestScore}%\n")
+
+        if currentBestScore > overallBestScore:
+            overallBestScore = currentBestScore
+            overallBestFeature = currentBestSubset.copy()
+
+    print(f"Search finished! The best subset of features is {overallBestFeature}, which has an accuracy of {overallBestScore}%")
+
 def main():
-    #ask user for choice of feature and dataset
-    filePath = input("Enter the path to the dataset file (ex., 'small-test-dataset.txt'): ")
-    featuresInput = input("Enter the feature indices separated by commas (ex., 3,5,7): ")
-    #format into a comma seperated list - split seperates the data based on certain character
-    features = [int(i.strip()) for i in featuresInput.split(',')]
-   
-    #print the statement of running tests with certain features
-    print(f"--- Running evaluation for {filePath} with features {features} ---")
-    
-    #call the evaluation function with input variables
-    accuracy = EvaluateFeatures(filePath, features)
-    
-    #if there are no errors, give the output
-    if accuracy is not None:
-        print(f"\nAccuracy: {accuracy:.5f}\n")
+    # input instruction prompt
+    print("Welcome to the Feature Selection Algorithm.")
 
-# This is how you would run it
+    filePath = input("Enter the path to the dataset file (ex., 'small-test-dataset.txt'): ")
+
+    print("\nType the number of the algorithm you want to run.")
+    print("1) Forward Selection")
+    print("2) Backward Elimination")    
+
+    # 2D numpy array each row is datapoint -> .shape[1] and each column is a feature -> .shape[0]
+    features = LoadDataset(filePath)[0] # adjust to make feature to 2D numpy 
+    num_feature = features.shape[1]
+    num_instances = features.shape[0]
+
+    print(f"This dataset has {num_feature} features (not including the class attribute), with {num_instances} instances.")
+    print("Please wait while I normalize the data…  Done!")
+
+    
+    # input validation - 1 or 2
+    while True:
+        try: 
+            choice = int(input("\n"))
+            if choice == 1:
+                ForwardSelection(num_feature, filePath)
+                break
+            elif choice ==2:
+                BackwardElimination(num_feature, filePath)
+                break
+            else:
+                print("invalid input. Enter 1 or 2.")
+        except ValueError:
+            print("invalid input. Enter 1 or 2.")
+            
 if __name__ == "__main__":
     main()
     
