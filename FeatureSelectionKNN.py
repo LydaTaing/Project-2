@@ -206,7 +206,7 @@ def ForwardSelection(num_feature, filePath):
             tempSet = currentFeature.copy()
             tempSet.add(feature)
             
-            # modify : 
+            # modify : Evaluate the current feature subset and calculate its classification accuracy
             tempScore = EvaluateFeatures(filePath, list(tempSet))
             print(f"    Using feature(s) {tempSet} accuracy is {tempScore}%")
 
@@ -254,7 +254,7 @@ def BackwardElimination(num_feature, filePath):
         for feature in currentFeature:
             tempSet = currentFeature - {feature}
 
-            # modify : 
+            # modify : Evaluate the current feature subset and calculate its classification accuracy
             tempScore = EvaluateFeatures(filePath, list(tempSet))
             print(f"    Using feature(s) {tempSet} accuracy is {tempScore}%")
 
@@ -307,4 +307,3 @@ def main():
             
 if __name__ == "__main__":
     main()
-    
