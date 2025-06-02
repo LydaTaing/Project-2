@@ -28,11 +28,11 @@ def ForwardSelection(num_feature):
         availableFeature = set(range(1, num_feature +1)) - currentFeature
 
         # keep track of how many different features are evaluated as potential candidates to be added at the current level
-        featureCounter = 0
+        #featureCounter = 0
 
         # in each combiation of feature, check the best score
         for feature in availableFeature:
-            featureCounter += 1
+            #featureCounter += 1
             tempSet = currentFeature.copy()
             tempSet.add(feature)
             tempScore = evalFunction(tempSet)
@@ -60,15 +60,16 @@ def ForwardSelection(num_feature):
 
 
 # the same intuition to Forward selection, but go backward. 
-# It starts with the full, set of features and removes one feature at a time.
+# It starts with the full set of features and removes one feature at a time.
 def BackwardElimination(num_feature):
-    # print the first random evaluation for initial feature.
-    score = evalFunction(set()) #empty set 
-    print(f"Using no features and \"random\" evaluation, I get an accuracy of {score}%. Beginning search.\n")
 
     # initial set of feature 
     currentFeature = set(range(1, num_feature + 1))
     overallBestFeature = currentFeature.copy()
+
+    # print the first random evaluation for initial feature.
+    score = evalFunction(currentFeature) #empty set 
+    print(f"Using all features and \"random\" evaluation, I get an accuracy of {score}%. Beginning search.\n")
 
     # best score overall level
     overallBestScore = score
