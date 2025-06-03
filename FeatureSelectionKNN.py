@@ -35,7 +35,7 @@ class NearestNeighborClassifier:
             for i, d in enumerate(distances)
         ]
         #sort the distances by the second value in the tuple, the distance acending order
-        indexedDistances.sort(key=lambda x: x[1])
+        indexedDistances.sort(key=lambda x: x[set.k])
         #get only the firstvalue in the tuple 
         kNearestIndices = [i for i, d in indexedDistances[:1]]
 
@@ -46,7 +46,7 @@ class NearestNeighborClassifier:
         ]
 
         #count and return most common label
-        most_common = Counter(kNearestLabels).most_common(1)
+        most_common = Counter(kNearestLabels).most_common(self.k)
         return most_common[0][0]
     
 
