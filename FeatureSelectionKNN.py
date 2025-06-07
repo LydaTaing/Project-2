@@ -271,16 +271,24 @@ def BackwardElimination(num_feature, filePath, kVale):
 
 def main():
     # input instruction prompt
-    print("Welcome to the Feature Selection Algorithm.")
+    print("Welcome to Amshu Bellur (abell062), Lyda Taing (ltain005), and Gregory Wang (gwang086) Feature Selection Algorithm.")
+    print("-------------------------------------------------------------------------------------------------------------------\n")
 
     filePath = input("Enter the path to the dataset file (ex., 'small-test-dataset.txt'): ")
 
-    
+    # 2D numpy array each row is datapoint -> .shape[1] and each column is a feature -> .shape[0]
+    features = LoadDataset(filePath)[0] # adjust to make feature to 2D numpy 
+    num_feature = features.shape[1]
+    num_instances = features.shape[0]
+
+    print("\n")
+    print(f"This dataset has {num_feature} features (not including the class attribute), with {num_instances} instances.")
+    print("Please wait while I normalize the data…  Done!")
+
     #get k value for K-NN classification 
     while True:
         try: 
-            print("Please enter a value of k for k-NN classification: ")
-            kVale = int(input("\n"))
+            kVale = int(input("Please enter a value of k for k-NN classification: "))
             # validation k > 0 
             if kVale <= 0:
                 print("Please enter the positive value. \n")
@@ -289,24 +297,16 @@ def main():
                 break
         except ValueError:
             print ("Invalid input, please enter a positive number. \n")
- 
+
     # choose the algorithm 
     print("\nType the number of the algorithm you want to run.")
     print("1) Forward Selection")
-    print("2) Backward Elimination")    
-
-    # 2D numpy array each row is datapoint -> .shape[1] and each column is a feature -> .shape[0]
-    features = LoadDataset(filePath)[0] # adjust to make feature to 2D numpy 
-    num_feature = features.shape[1]
-    num_instances = features.shape[0]
-
-    print(f"This dataset has {num_feature} features (not including the class attribute), with {num_instances} instances.")
-    print("Please wait while I normalize the data…  Done!")
+    print("2) Backward Elimination") 
 
     # input validation - 1 or 2
     while True:
         try: 
-            choice = int(input("\n"))
+            choice = int(input())
             if choice == 1:
                 ForwardSelection(num_feature, filePath, kVale)
                 break
