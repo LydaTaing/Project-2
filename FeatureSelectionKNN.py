@@ -35,18 +35,15 @@ class NearestNeighborClassifier:
             for i, d in enumerate(distances)
         ]
         #sort the distances by the second value in the tuple, the distance acending order
-        indexedDistances.sort(key=lambda x: x[set.k])
+        indexedDistances.sort(key=lambda x: x[1])
         #get only the firstvalue in the tuple 
-        kNearestIndices = [i for i, d in indexedDistances[:1]]
+        kNearestIndices = [i for i, d in indexedDistances[:self.k]] 
 
         #labels of k nearest neighbors
-        kNearestLabels = [
-            self.trainingLabels[i]
-            for i in kNearestIndices
-        ]
+        kNearestLabels = [self.trainingLabels[i] for i in kNearestIndices]
 
         #count and return most common label
-        most_common = Counter(kNearestLabels).most_common(self.k)
+        most_common = Counter(kNearestLabels).most_common(1)
         return most_common[0][0]
     
 
@@ -144,7 +141,7 @@ def normalizeData(data):
 #arg: file_path (str): The path to the dataset file
 #arg: feature_subset (list of int): A list of 1-based feature numbers to use
 #return: float: The calculated accuracy, or None if an error occurs
-def EvaluateFeatures(filePath, featureSubset):
+def EvaluateFeatures(filePath, featureSubset, kVale):
     #tell the user we are loading dataset
     # print(f"Loading dataset: {filePath}...")
     features, labels = LoadDataset(filePath)
@@ -169,20 +166,21 @@ def EvaluateFeatures(filePath, featureSubset):
     normalizedFeatures = normalizeData(selectedFeatures)
     
     # Calculate accuracy using the previously defined validation function
-    # Using k=1 for the nearest neighbor as per the base requirement
-    accuracy = CrossValidation(normalizedFeatures, labels, 1)
+    # Using k >= 1 for the nearest neighbor as per the base requirement 
+    # k value is from user input. 
+    accuracy = CrossValidation(normalizedFeatures, labels, kVale)
     
     #return in percentage 
     return round(accuracy *100, 1)
 
-def ForwardSelection(num_feature, filePath):
+def ForwardSelection(num_feature, filePath, kVale):
 
     # initial set of feature 
     overallBestFeature = set()
     currentFeature = set()
 
     # print the first random evaluation for initial feature.
-    score = EvaluateFeatures(filePath, list(currentFeature))
+    score = EvaluateFeatures(filePath, list(currentFeature), kVale)
     print(f"Running nearest neighbor with no features (default rate), using \"leaving-one-out\" evaluation, I get an accuracy of {score}%")
     print("Beginning search.")
 
@@ -207,7 +205,7 @@ def ForwardSelection(num_feature, filePath):
             tempSet.add(feature)
             
             # modify : Evaluate the current feature subset and calculate its classification accuracy
-            tempScore = EvaluateFeatures(filePath, list(tempSet))
+            tempScore = EvaluateFeatures(filePath, list(tempSet), kVale)
             print(f"    Using feature(s) {tempSet} accuracy is {tempScore}%")
 
             # check if the current score is greater then the overall score
@@ -233,14 +231,14 @@ def ForwardSelection(num_feature, filePath):
 
 # the same intuition to Forward selection, but go backward. 
 # It starts with the full set of features and removes one feature at a time.
-def BackwardElimination(num_feature, filePath):
+def BackwardElimination(num_feature, filePath, kVale):
 
     # initial set of feature 
     currentFeature = set(range(1, num_feature + 1))
     overallBestFeature = currentFeature.copy()
 
     # print the first random evaluation for initial feature.
-    score = EvaluateFeatures(filePath, list(currentFeature))
+    score = EvaluateFeatures(filePath, list(currentFeature), kVale)
     print(f"Running nearest neighbor with all features using \"leaving-one-out\" evaluation, I get an accuracy of {score}%.")
     print("Beginning search.")
     # best score overall level
@@ -255,7 +253,7 @@ def BackwardElimination(num_feature, filePath):
             tempSet = currentFeature - {feature}
 
             # modify : Evaluate the current feature subset and calculate its classification accuracy
-            tempScore = EvaluateFeatures(filePath, list(tempSet))
+            tempScore = EvaluateFeatures(filePath, list(tempSet), kVale)
             print(f"    Using feature(s) {tempSet} accuracy is {tempScore}%")
 
             if tempScore > currentBestScore:
@@ -277,6 +275,22 @@ def main():
 
     filePath = input("Enter the path to the dataset file (ex., 'small-test-dataset.txt'): ")
 
+    
+    #get k value for K-NN classification 
+    while True:
+        try: 
+            print("Please enter a value of k for k-NN classification: ")
+            kVale = int(input("\n"))
+            # validation k > 0 
+            if kVale <= 0:
+                print("Please enter the positive value. \n")
+                continue
+            else: 
+                break
+        except ValueError:
+            print ("Invalid input, please enter a positive number. \n")
+ 
+    # choose the algorithm 
     print("\nType the number of the algorithm you want to run.")
     print("1) Forward Selection")
     print("2) Backward Elimination")    
@@ -289,16 +303,15 @@ def main():
     print(f"This dataset has {num_feature} features (not including the class attribute), with {num_instances} instances.")
     print("Please wait while I normalize the data…  Done!")
 
-    
     # input validation - 1 or 2
     while True:
         try: 
             choice = int(input("\n"))
             if choice == 1:
-                ForwardSelection(num_feature, filePath)
+                ForwardSelection(num_feature, filePath, kVale)
                 break
             elif choice ==2:
-                BackwardElimination(num_feature, filePath)
+                BackwardElimination(num_feature, filePath, kVale)
                 break
             else:
                 print("invalid input. Enter 1 or 2.")

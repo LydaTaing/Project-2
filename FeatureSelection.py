@@ -78,7 +78,8 @@ def BackwardElimination(num_feature):
     for level in range(num_feature):
         currentBestScore = -1.0
         currentBestFeature = None
-
+        
+        #remove each feature per each iteration and evaluate a new subset
         for feature in currentFeature:
             tempSet = currentFeature - {feature}
             tempScore = evalFunction(tempSet)
