@@ -75,7 +75,7 @@ def BackwardElimination(num_feature):
     overallBestScore = score
 
     # each level, check the best score and feature
-    for level in range(num_feature):
+    for level in range(num_feature - 1):
         currentBestScore = -1.0
         currentBestFeature = None
         
