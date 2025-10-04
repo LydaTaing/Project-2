@@ -1,4 +1,4 @@
-# Project-2
+# Search Algorithm 
 
 ## Part 1: Implementing the search algorithm only  
 
